@@ -10,7 +10,7 @@ function initLineLevelRegex() {
   addLineRegex(1,"\"level\":\"warning\"" x "\"level\":\"warn\"" x "[^ ]?W"d4 x "\\[WARNING\\]")
   addLineRegex(0,"\"level\":\"error\"" x  "[^ ]?E"d4 x "\\[ERROR\\]")
   # dockerd and others text
-  addLineRegex(2, "level=debug "); addLineRegex(2, "level=info ");
+  addLineRegex(3, "level=debug "); addLineRegex(2, "level=info ");
   addLineRegex(1, "level=warning "); addLineRegex(0, "level=error ")
 }
 # Colors scheme ansi 256 selection according to mode
