@@ -1,4 +1,4 @@
-# usage: awk -v skip_[error|warning|info|debug]=regex -v mode=[cf|gs] -f eye.awk myfile
+# usage: awk -v skip_[error|warning|info|debug]=regex -v mode=[cf|gs],emoji -f eye.awk myfile
 
 # Define per level regex, use 'x' as separator
 function initLineLevelRegex() {
@@ -24,8 +24,10 @@ function eye() {
   # Get line color plus style regex if matched
   lineLevel = lineHighlight(bold())
   if(! toSkip(lineLevel)) {
+    emoji=""
+    if (mode ~ /moji/ ) { emoji=emojiArray[lineLevel] }
     STATS[lineLevel]=STATS[lineLevel]+1
-    printf("%s%s%s\n", lineLevelColorsArray[lineLevel], $0, reset());
+    printf("%s%s%s%s\n", emoji, lineLevelColorsArray[lineLevel], $0, reset());
   }
   else { STATS_SKIP[lineLevel]=STATS_SKIP[lineLevel]+1 }
 }
@@ -86,6 +88,7 @@ function init() {
   initColorScheme(); initLineLevelRegex(); initSkip();
   STATS[0]=0; STATS[1]=0; STATS[2]=0; STATS[3]=0;
   STATS_SKIP[0]=0; STATS_SKIP[1]=0; STATS_SKIP[2]=0; STATS_SKIP[3]=0;
+  emojiArray[0]="🔥 "; emojiArray[1]= "⚠️  "; emojiArray[2]="🔵 "; emojiArray[3]="📢 "
 }
 { eye(); next }
 END {
