@@ -1,0 +1,16 @@
+==> json logs <==
+{"level":"debug","ts":"2021-12-20T19:08:48.053Z","caller":"index.go:214","msg":"some debug"}
+{"level":"info","ts":"2021-12-20T19:03:48.045Z","caller":"index.go:214","msg":"some info"}
+{"level":"warning","ts":"2021-12-20T19:03:48.046Z","caller":"kvstore_compaction.go:57","msg":"some warning"}
+{"level":"error","ts":"2021-12-20T19:08:48.053Z","caller":"index.go:214","msg":"some error"}
+
+==> go logs <==
+I0103 19:41:04.984104   10819 main.go:278] info
+W0103 19:41:06.218155   10819 main.go:130] warning
+E0103 19:41:06.218155   10819 main.go:130] error
+
+==> text logs <==
+Jan 03 19:43:55 minikube dockerd[213]: time="2022-01-03T14:43:55.135273900Z" level=debug msg="debug event"
+Jan 03 19:43:55 minikube dockerd[213]: time="2022-01-03T14:43:55.135273900Z" level=info msg="info event"
+Jan 03 19:44:37 minikube dockerd[213]: time="2022-01-03T14:44:37.310399300Z" level=warning msg="warning event"
+Jan 03 19:44:37 minikube dockerd[213]: time="2022-01-03T14:44:37.310399300Z" level=error msg="error event"
