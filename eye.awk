@@ -23,13 +23,13 @@ function initColorScheme() {
 function eye() {
   # Get line color plus style regex if matched
   lineLevel = lineHighlight(bold())
-  if(! toSkip(lineLevel)) {
+  if(! toIgnore(lineLevel)) {
     emoji=""
     if (mode ~ /moji/ ) { emoji=emojiArray[lineLevel] }
     STATS[lineLevel]=STATS[lineLevel]+1
     printf("%s%s%s%s\n", emoji, lineLevelColorsArray[lineLevel], $0, reset());
   }
-  else { STATS_SKIP[lineLevel]=STATS_SKIP[lineLevel]+1 }
+  else { STATS_IGNORE[lineLevel]=STATS_IGNORE[lineLevel]+1 ; }
 }
 # Test whole line return a color and  style on match
 function lineHighlight(style) {
@@ -50,9 +50,10 @@ function lineHighlight(style) {
 function applyStyle(marker, style, color){
   gsub(marker, sprintf("%s&%s%s", style, reset(), color), $0)
 }
-# test if level plus term should be skipped
-function toSkip(level) {
-  return skipArray[level] != "" && $0 ~ skipArray[level]
+# test if level combined term should be ignored
+function toIgnore(level) {
+  for (i in ignoreArray){ if (ignoreArray[i] == level && $0 ~ i) { return 1 } }
+  return 0
 }
 # internal init functions
 function initLineLevelColors(separator, lineColors) {
@@ -60,11 +61,17 @@ function initLineLevelColors(separator, lineColors) {
   for (i in tmpArray) { lineLevelColorsArray[i-1]=getColor(tmpArray[i]) }
   lineLevelColorsArray[99]=reset()
 }
-function initSkip(){
-  if(skip_error){ skipArray[0]=skip_error }
-  if (skip_warning) { skipArray[1]=skip_warning }
-  if (skip_info) { skipArray[2]=skip_info }
-  if (skip_debug) { skipArray[3]=skip_debug }
+function initIgnore(){
+  addIgnore(0,(ignore_error)?ignore_error:ignore_errors)
+  addIgnore(1,(ignore_warning)?ignore_warning:ignore_warnings)
+  addIgnore(2,(ignore_info)?ignore_info:ignore_infos)
+  addIgnore(3,(ignore_debug)?ignore_debug:ignore_debugs)
+}
+function addIgnore(level,ignore_regex) {
+  if (ignore_regex) {
+    split(ignore_regex, tmpArray, "\n")
+    for (i in tmpArray) { ignoreArray[tmpArray[i]]=level }
+  }
 }
 function addLineRegex(level, array){
   split(array, tmpArray, x)
@@ -85,10 +92,9 @@ BEGIN{
 }
 function init() {
   FS="\n" # process line by lined
-  initColorScheme(); initLineLevelRegex(); initSkip();
+  initColorScheme(); initLineLevelRegex(); initIgnore();
   STATS[0]=0; STATS[1]=0; STATS[2]=0; STATS[3]=0;
-  STATS_SKIP[0]=0; STATS_SKIP[1]=0; STATS_SKIP[2]=0; STATS_SKIP[3]=0;
-  emojiArray[0]="🔥 "; emojiArray[1]= "⚠️  "; emojiArray[2]="🔵 "; emojiArray[3]="📢 "
+  STATS_IGNORE[0]=0; STATS_IGNORE[1]=0; STATS_IGNORE[2]=0; STATS_IGNORE[3]=0;
 }
 { eye(); next }
 END {
