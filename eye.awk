@@ -1,10 +1,9 @@
-# usage: awk -v skip_[error|warning|info|debug]=regex -v mode=[cf|gs],emoji -f eye.awk myfile
+# Usage: run `echo | gawk -v usage=1 -f eye.awk`
 
-# Define per level regex, use 'x' as separator
 function initLineLevelRegex() {
   d4="[0-9][0-9][0-9][0-9]" # "[0-9]{4}" expand is not "nawk" compatible
 
-  # json, klog and others miscs
+  # json, klog and others miscs, separated by special "x" character
   addLineRegex(3,"\"level\":\"debug\"")
   addLineRegex(2, "\"level\":\"info\"" x "[^ ]?I"d4 x "\\[INFO\\]")
   addLineRegex(1,"\"level\":\"warning\"" x "\"level\":\"warn\"" x "[^ ]?W"d4 x "\\[WARNING\\]")
@@ -12,12 +11,16 @@ function initLineLevelRegex() {
   # dockerd and others text
   addLineRegex(3, "level=debug "); addLineRegex(2, "level=info ");
   addLineRegex(1, "level=warning "); addLineRegex(0, "level=error ")
+  # mongodb maybe other js
+  addLineRegex(3, "\"s\":\"D\""); addLineRegex(2, "\"s\":\"I\"");
+  addLineRegex(1, "\"s\":\"W\""); addLineRegex(0, "\"s\":\"E\"");
 }
 # Colors scheme ansi 256 selection according to mode
 function initColorScheme() {
   if (mode ~ /cf/ ){ initLineLevelColors(x, 1 x 2 x 4 x 5) }
   else if (mode ~ /gs/ ){ initLineLevelColors(x, 254 x 250 x 244 x 242) }
   else { initLineLevelColors(x, 209 x 178 x 117 x 99) }
+  emojiArray[0]="🔥 "; emojiArray[1]= "⚠️  "; emojiArray[2]="🔵 "; emojiArray[3]="📢 "
 }
 # Line processing
 function eye() {
@@ -96,11 +99,24 @@ function init() {
   STATS[0]=0; STATS[1]=0; STATS[2]=0; STATS[3]=0;
   STATS_IGNORE[0]=0; STATS_IGNORE[1]=0; STATS_IGNORE[2]=0; STATS_IGNORE[3]=0;
 }
-{ eye(); next }
+{ if (!usage && !showConfig) {eye(); next } else { exit } }
 END {
-  print reset() "\n" "Level: \t\tError\t\tWarning\t\tInfo\t\tDebug"
-  print "Count:\t\t" STATS[0] "\t\t" STATS[1] "\t\t" STATS[2] "\t\t" STATS[3]
-  if (skip_error || skip_warning || skip_info || skip_debug) {
-    print "Skipped:\t" STATS_SKIP[0] "\t\t" STATS_SKIP[1] "\t\t" STATS_SKIP[2] "\t\t" STATS_SKIP[3]
+  if (usage) {
+   print "usage: awk -v ignore_[error|warning|info|debug]=regex -v mode=[cf|gs],emoji -f eye.awk myfile"
+   printf "emojis: "; for (i in emojiArray) { printf("%s", i "=" emojiArray[i] " ") }
+   print ""
   }
+  if (stats) {
+    print reset()  "\n"
+    print "Level: \t\tError\t\tWarning\t\tInfo\t\tDebug"
+    print "Count:\t\t" STATS[0] "\t\t" STATS[1] "\t\t" STATS[2] "\t\t" STATS[3]
+    if (ignore_error || ignore_warning || ignore_info || ignore_debug) {
+      print "Ignored:\t" STATS_IGNORE[0] "\t\t" STATS_IGNORE[1] "\t\t" STATS_IGNORE[2] "\t\t" STATS_IGNORE[3]
+    }
+  }
+  if (showConfig){
+    for (i in LeveLines) { print "line regex \t level: " LeveLines[i] ", \tregex: " i }
+    print ""
+    for (i in ignoreArray) { print "ignore regex \t level: " ignoreArray[i] ", \tregex: " i }
+   }
 }
