@@ -2,14 +2,15 @@
 
 Tiny awk script to improve kubernetes logs reading experience.
 
-Best when:
+Best for:
 * live tailing
-* reporting in CI
+* printing logs in CI
 
-Featuring :
-* colours and higlights, colorblind-friendly palette
-* skip and stats
-* no dep but any awk, install with no root
+Features:
+* colours and higlights, colorblind-friendly palette is default
+* emojis 🔔
+* stats and filters
+* install with no dependencies
 * easy to customize
 
 # Usage
@@ -19,51 +20,45 @@ Featuring :
 awk -f eye.awk file.log
 
 # from pipe
-kubectl logs -f -n kube-system calico-node-xx |awk -f eye.awk
-```
+kubectl logs -f -n kube-system calico-node-xx |eye.awk
 
-More info about usage:
-```
-echo |awk  -v usage=1
+# also works with kubetail, docker logs, journalctl -u containerd -u kubelet, ...
+
+# if piping to less: use uppercase '-R' option for correct display
+cat file.log |eye.awk |less -R
+
+# if piping from kubetail, use '-k pod' option for best display
+kubetail -k pod -n kube-system |eye.awk
+
+# More info about usage:
+echo |eye.awk
 ```
 
 # Install
 
-Install the way you want, in any directory you want.
+## Requirements
 
-Probably diserves to be aliased:
-```
-alias awkeye='awk -f [PATH_OF_FILE]/eye.awk '
-```
+Nothing but a shell with any flavour of awk.
 
+## Install via curl
 
-## curl
-
-```
-# TODO curl
+Choose a target directory, dowload and set alias:
+```shell
+curl https://raw.githubusercontent.com/jseguillon/eye.awk/main/eye.awk -O /my_install_path/eye.awk
+alias eye.awk='awk -f /my_install_path/eye.awk '
 ```
 
-## Heredoc paste
+## Install vai Heredoc paste
 
-Copy bellow snippet first line, press Enter, paste source script, press Enter, type `EOF` and Enter again. That's it file is now created.
-
-```
-cat <<EOF > eye.awk
+Choose target directory, copy snippet first line, press Enter, paste source script, press Enter, type `EOF` and Enter again, and finally alias:
+```shell
+cat <<'EOF' > /my_install_path/eye.awk
 ..... copy here source file .....
 EOF
-
+alias eye.awk='awk -f /my_install_path/eye.awk '
 ```
 
-Alternatively you can copy paste in preffered ediotr if available.
-
-# Piping to less
-
-Please use with only with uppercase `-R` flag.
-```
-less -R
-```
-
-Do not use minor case `-r` or you'll strange display.
+Alternatively you can copy paste in preffered editor if available.
 
 # Options
 
@@ -72,34 +67,30 @@ Do not use minor case `-r` or you'll strange display.
 Available rendering modes:
 * `-v mode=emoji`: add by level emoji at beginning of line
 * `-v mode=gs`: use grayscale palette
-* `-v mode=rgb`: use red-green-blue palette
+* `-v mode=ryb`: use red-yellow-blue palette
+* `-v mode=stats`: show stats
+* `-v mode=showConfig`: show current regex config
 
+Modes can be combined. Example:
+```
+eye.awk -v mode=emoji,gs,stats file.log
+```
 
-Emoji mode can be combined with one palette mode:
-```
-awk -f eye.awk -v mode=emoji,gs file.log
-```
+Palette modes are exclusive.
 
 ## Per level ignoring
 
-`-v ignore_error`, `-v ignore_warning`, `-v ignore_info`, `-v ignore_debug`
+You can ignore some lines of logs using: `-v ignore_error`, `-v ignore_warning`, `-v ignore_info` and `-v ignore_debug`. Examples:
+```shell
+# skip info logs about 200 OK probes
+kubetail -n my_namespace |eye.awk -v ignore_info='"statusCode":200.*"url":"/api/ping'
 
-
-```
-TODO -v ignore_x
-```
-
-## Stats
-
-Show stats about processed lines:
-
-```
-TODO -v stats=1
+# skip spam error message
+kubetail -n my_namespace |eye.awk -v ignore_error='myapp.*unable to get metrics.*'
 ```
 
+# License
 
-## showConfig
+MIT
 
-```
-TODO echo |awk  -v showConfig=1 -f eye.awk demo.log | sort
-```
+Plus: If this tool is widely adopted, I promise I won't complain I do not make money with it 😄
