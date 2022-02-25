@@ -1,5 +1,4 @@
-# Usage: run `echo | gawk -v usage=1 -f eye.awk`
-
+# Usage: run `echo |awk -f eye.awk`
 function initLineLevelRegex() {
   d4="[0-9][0-9][0-9][0-9]" # "[0-9]{4}" expand is not "nawk" compatible
 
@@ -17,10 +16,10 @@ function initLineLevelRegex() {
 }
 # Colors scheme ansi 256 selection according to mode
 function initColorScheme() {
-  if (mode ~ /cf/ ){ initLineLevelColors(x, 1 x 2 x 4 x 5) }
+  if (mode ~ /ryb/ ){ initLineLevelColors(x, 160 x 178 x 33 x 96) }
   else if (mode ~ /gs/ ){ initLineLevelColors(x, 254 x 250 x 244 x 242) }
   else { initLineLevelColors(x, 209 x 178 x 117 x 99) }
-  emojiArray[0]="🔥 "; emojiArray[1]= "⚠️  "; emojiArray[2]="🔵 "; emojiArray[3]="📢 "
+  emojiArray[0]="🔥 "; emojiArray[1]= "🔔 "; emojiArray[2]="💬 "; emojiArray[3]="📢 "
 }
 # Line processing
 function eye() {
@@ -99,14 +98,16 @@ function init() {
   STATS[0]=0; STATS[1]=0; STATS[2]=0; STATS[3]=0;
   STATS_IGNORE[0]=0; STATS_IGNORE[1]=0; STATS_IGNORE[2]=0; STATS_IGNORE[3]=0;
 }
-{ if (!usage && !showConfig) {eye(); next } else { exit } }
+{ if (mode !~ /showConfig/) {eye(); next } else { exit } }
 END {
-  if (usage) {
-   print "usage: awk -v ignore_[error|warning|info|debug]=regex -v mode=[cf|gs],emoji -f eye.awk myfile"
-   printf "emojis: "; for (i in emojiArray) { printf("%s", i "=" emojiArray[i] " ") }
-   print ""
+  if (NR == 1 && ($0 == "" || $0 ~ / +/ ) && (mode !~ /showConfig/)) {
+    print "\033[38;5;178mUsage:\033[0m eye.awk -v mode=[ryb|gs],emoji,stats,showConfig -v ignore_[error|warning|info|debug]=regex logfile.log"
+    printf "\033[38;5;178mColors and levels:\033[0m "; for (i in emojiArray) {
+      if (i != "") { printf("%s%s%s", lineLevelColorsArray[i], i "=" emojiArray[i] " ", reset()) }
+      }
+    print "\n" "\033[38;5;178mAlias example:\033[0m `alias eye.awk='awk -f /path/eye.awk'`\n"
   }
-  if (stats) {
+  if (mode ~ /stats/) {
     print reset()  "\n"
     print "Level: \t\tError\t\tWarning\t\tInfo\t\tDebug"
     print "Count:\t\t" STATS[0] "\t\t" STATS[1] "\t\t" STATS[2] "\t\t" STATS[3]
@@ -114,8 +115,8 @@ END {
       print "Ignored:\t" STATS_IGNORE[0] "\t\t" STATS_IGNORE[1] "\t\t" STATS_IGNORE[2] "\t\t" STATS_IGNORE[3]
     }
   }
-  if (showConfig){
-    for (i in LeveLines) { print "line regex \t level: " LeveLines[i] ", \tregex: " i }
+  if (mode ~ /showConfig/){
+    for (i in LeveLines) { print lineLevelColorsArray[LeveLines[i]] "line regex - level: " LeveLines[i] ", \tregex: " i reset()}
     print ""
     for (i in ignoreArray) { print "ignore regex \t level: " ignoreArray[i] ", \tregex: " i }
    }
