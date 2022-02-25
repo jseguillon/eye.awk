@@ -50,7 +50,7 @@ function lineHighlight(style) {
 }
 # replace matched with style, then matched, then reset then back to line color
 function applyStyle(marker, style, color){
-  gsub(marker, sprintf("%s&%s%s", style, reset(), color), $0)
+  gsub(marker, sprintf("%s%s&%s%s", color, style, reset(), color), $0)
 }
 # test if level combined term should be ignored
 function toIgnore(level) {
