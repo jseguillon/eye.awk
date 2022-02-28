@@ -2,6 +2,8 @@
 
 Tiny awk script to improve kubernetes logs reading experience.
 
+[![asciicast](https://asciinema.org/a/4yjZZ6P5SOu0BFTzx2nYf9tqA.svg)](https://asciinema.org/a/4yjZZ6P5SOu0BFTzx2nYf9tqA)
+
 Best for:
 * live tailing
 * printing logs in CI
