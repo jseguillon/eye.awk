@@ -19,7 +19,7 @@ Features:
 
 ```
 # from file
-awk -f eye.awk file.log
+eye.awk file.log
 
 # from pipe
 kubectl logs -f -n kube-system calico-node-xx |eye.awk
